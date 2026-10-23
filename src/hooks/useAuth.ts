@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 
+const SITE_URL = 'https://open-source-app-stor-alw0.bolt.host';
+
 interface AuthState {
   user: User | null;
   session: Session | null;
@@ -52,7 +54,7 @@ export function useAuth(): AuthState {
       email,
       password,
       options: {
-        emailRedirectTo: import.meta.env.VITE_SUPABASE_URL,
+        emailRedirectTo: SITE_URL,
       },
     });
     if (error) return { error: error.message };
@@ -70,7 +72,7 @@ export function useAuth(): AuthState {
 
   const resetPassword = useCallback(async (email: string) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: import.meta.env.VITE_SUPABASE_URL,
+      redirectTo: SITE_URL,
     });
     return { error: error?.message ?? null };
   }, []);
