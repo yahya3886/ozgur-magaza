@@ -15,7 +15,7 @@ import { RepoManager } from '@/components/RepoManager';
 
 export default function App() {
   const { theme, toggleTheme } = useTheme();
-  const { user, loading: authLoading, signIn, signUp, signOut } = useAuth();
+  const { user, loading: authLoading, signIn, signUp, signInWithGoogle, signOut } = useAuth();
   const { repos, loading: reposLoading, addRepo, removeRepo, toggleRepo } = useRepos(user?.id ?? null);
   const { apps, loading, error, refetch } = useApps(repos);
 
@@ -101,7 +101,7 @@ export default function App() {
   }
 
   if (!user) {
-    return <AuthScreen onSignIn={signIn} onSignUp={signUp} />;
+    return <AuthScreen onSignIn={signIn} onSignUp={signUp} onGoogleSignIn={signInWithGoogle} />;
   }
 
   return (
@@ -211,7 +211,7 @@ export default function App() {
                 ÖzgürMağaza — Açık kaynak Android uygulama mağazası
               </div>
               <div className="text-xs text-slate-400 dark:text-slate-500">
-                Veriler GitHub ve kullanıcı kaynaklarından çekilir
+                Veriler F-Droid ve kullanıcı kaynaklarından çekilir
               </div>
             </div>
           </footer>

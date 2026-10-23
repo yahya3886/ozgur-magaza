@@ -20,9 +20,11 @@ interface UseReposResult {
   refetch: () => void;
 }
 
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+
 const DEFAULT_FDROID_REPO = {
   name: 'F-Droid (Varsayılan)',
-  url: 'https://raw.githubusercontent.com/bolt-app-store/bolt-app-store.github.io/main/apps.json',
+  url: `${SUPABASE_URL}/functions/v1/fdroid-proxy?limit=200`,
 };
 
 export function useRepos(userId: string | null): UseReposResult {
