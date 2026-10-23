@@ -17,7 +17,7 @@ import { ChatScreen } from '@/components/ChatScreen';
 
 export default function App() {
   const { theme, toggleTheme } = useTheme();
-  const { user, loading: authLoading, passwordRecovery, signIn, signUp, signInAnonymously, resetPassword, updatePassword, deleteAccount, signOut } = useAuth();
+  const { user, loading: authLoading, guestCode, signInAnonymously, restoreWithCode, deleteAccount, signOut } = useAuth();
   const { repos, loading: reposLoading, addRepo, removeRepo, toggleRepo } = useRepos(user?.id ?? null);
   const { apps, loading, error, refetch } = useApps(repos);
 
@@ -104,8 +104,8 @@ export default function App() {
     );
   }
 
-  if (!user || passwordRecovery) {
-    return <AuthScreen onSignIn={signIn} onSignUp={signUp} onSignInAnonymously={signInAnonymously} onResetPassword={resetPassword} onUpdatePassword={updatePassword} passwordRecovery={passwordRecovery} />;
+  if (!user) {
+    return <AuthScreen onSignInAnonymously={signInAnonymously} onRestoreWithCode={restoreWithCode} />;
   }
 
   return (
@@ -122,7 +122,6 @@ export default function App() {
         appCount={apps.length}
         onToggleSidebar={() => setSidebarOpen((v) => !v)}
         onOpenRepoManager={() => setRepoManagerOpen(true)}
-        userEmail={user.email ?? null}
         onSignOut={signOut}
         onDeleteAccount={deleteAccount}
         onOpenSettings={() => setSettingsOpen(true)}
@@ -236,8 +235,7 @@ export default function App() {
 
       {settingsOpen && (
         <SettingsScreen
-          userEmail={user.email ?? null}
-          onUpdatePassword={updatePassword}
+          guestCode={guestCode}
           onDeleteAccount={deleteAccount}
           onSignOut={signOut}
           onClose={() => setSettingsOpen(false)}

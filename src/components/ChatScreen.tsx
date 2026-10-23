@@ -27,9 +27,7 @@ export function ChatScreen({ user, onClose }: ChatScreenProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  const displayName = user.email && user.email !== ''
-    ? user.email.split('@')[0]
-    : 'Misafir';
+  const displayName = 'Misafir';
   const isAnon = user.is_anonymous === true;
 
   const scrollToBottom = useCallback((smooth = true) => {

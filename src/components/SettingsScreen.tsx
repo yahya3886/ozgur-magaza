@@ -1,45 +1,25 @@
 import { useState } from 'react';
-import { X, Lock, Eye, EyeOff, AlertCircle, CheckCircle2, Loader2, KeyRound, Trash2, ShieldAlert, User, Mail, ArrowLeft } from 'lucide-react';
+import { X, AlertCircle, CheckCircle2, Loader2, Trash2, ShieldAlert, User, KeyRound, Copy, Check, ArrowLeft, Info } from 'lucide-react';
 
 interface SettingsScreenProps {
-  userEmail: string | null;
-  onUpdatePassword: (newPassword: string) => Promise<{ error: string | null }>;
+  guestCode: string | null;
   onDeleteAccount: () => Promise<{ error: string | null }>;
   onSignOut: () => void;
   onClose: () => void;
 }
 
-export function SettingsScreen({ userEmail, onUpdatePassword, onDeleteAccount, onSignOut, onClose }: SettingsScreenProps) {
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+export function SettingsScreen({ guestCode, onDeleteAccount, onSignOut, onClose }: SettingsScreenProps) {
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [copied, setCopied] = useState(false);
 
-  const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newPassword.length < 6) {
-      setError('Yeni şifre en az 6 karakter olmalı.');
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      setError('Şifreler eşleşmiyor.');
-      return;
-    }
-    setSubmitting(true);
-    setError(null);
-    setInfo(null);
-    const result = await onUpdatePassword(newPassword);
-    setSubmitting(false);
-    if (result.error) {
-      setError(result.error);
-    } else {
-      setInfo('Şifreniz başarıyla değiştirildi.');
-      setNewPassword('');
-      setConfirmPassword('');
-    }
+  const handleCopy = () => {
+    if (!guestCode) return;
+    navigator.clipboard.writeText(guestCode);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const handleDeleteAccount = async () => {
@@ -88,79 +68,42 @@ export function SettingsScreen({ userEmail, onUpdatePassword, onDeleteAccount, o
             <div className="space-y-2 rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/50">
               <div className="flex items-center gap-3">
                 <User className="h-4 w-4 text-teal-500" />
-                <span className="text-sm text-slate-600 dark:text-slate-300">
-                  {userEmail && userEmail !== '' ? userEmail : 'Misafir kullanici'}
-                </span>
-              </div>
-              <div className="flex items-center gap-3">
-                <Mail className="h-4 w-4 text-teal-500" />
-                <span className="text-sm text-slate-600 dark:text-slate-300">
-                  {userEmail && userEmail !== '' ? userEmail : 'E-posta yok (misafir)'}
-                </span>
+                <span className="text-sm text-slate-600 dark:text-slate-300">Misafir hesap</span>
               </div>
             </div>
           </section>
 
-          {/* Change password section */}
-          {userEmail && userEmail !== '' && (
-            <section>
-              <h3 className="mb-3 text-sm font-semibold text-slate-500 dark:text-slate-400">Sifre Degistir</h3>
-              <form onSubmit={handleChangePassword} className="space-y-3">
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                    Yeni Sifre
-                  </label>
-                  <div className="relative">
-                    <Lock className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="••••••••"
-                      className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pl-11 pr-11 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all focus:border-teal-500 focus:bg-white focus:ring-2 focus:ring-teal-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500 dark:focus:border-teal-400"
-                    />
+          {/* Guest code section */}
+          <section>
+            <h3 className="mb-3 text-sm font-semibold text-slate-500 dark:text-slate-400">Misafir Kodun</h3>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/50">
+              {guestCode ? (
+                <>
+                  <div className="mb-3 flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2.5 text-xs text-amber-700 dark:bg-amber-950/30 dark:text-amber-400">
+                    <Info className="mt-0.5 h-4 w-4 shrink-0" />
+                    <span>Bu kodla baska cihazlarda hesabina geri donebilirsin. Kodunu guvenli bir yerde sakla.</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <KeyRound className="h-5 w-5 shrink-0 text-teal-500" />
+                    <code className="flex-1 text-sm font-bold tracking-wider text-slate-900 dark:text-white break-all">
+                      {guestCode}
+                    </code>
                     <button
-                      type="button"
-                      onClick={() => setShowPassword((v) => !v)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-700"
+                      onClick={handleCopy}
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                      aria-label="Kodu kopyala"
                     >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
                     </button>
                   </div>
-                </div>
-
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                    Yeni Sifre (Tekrar)
-                  </label>
-                  <div className="relative">
-                    <Lock className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="••••••••"
-                      className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pl-11 pr-4 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all focus:border-teal-500 focus:bg-white focus:ring-2 focus:ring-teal-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500 dark:focus:border-teal-400"
-                    />
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-teal-600 text-sm font-semibold text-white transition-all hover:bg-teal-700 active:scale-[0.98] disabled:opacity-60"
-                >
-                  {submitting ? (
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                  ) : (
-                    <>
-                      <KeyRound className="h-4 w-4" /> Sifreyi Degistir
-                    </>
-                  )}
-                </button>
-              </form>
-            </section>
-          )}
+                </>
+              ) : (
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  Kod bulunamadi. Cikis yapip tekrar giris yaptiginizda yeni bir kod olusturulacak.
+                </p>
+              )}
+            </div>
+          </section>
 
           {/* Danger zone */}
           <section>

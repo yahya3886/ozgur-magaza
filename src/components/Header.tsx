@@ -13,7 +13,6 @@ interface HeaderProps {
   appCount: number;
   onToggleSidebar: () => void;
   onOpenRepoManager: () => void;
-  userEmail: string | null;
   onSignOut: () => void;
   onDeleteAccount: () => void;
   onOpenSettings: () => void;
@@ -40,7 +39,6 @@ export function Header({
   appCount,
   onToggleSidebar,
   onOpenRepoManager,
-  userEmail,
   onSignOut,
   onDeleteAccount,
   onOpenSettings,
@@ -138,12 +136,12 @@ export function Header({
             <button className="flex h-10 items-center gap-2 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-600 px-3 text-sm font-semibold text-white shadow-md shadow-teal-500/20 transition-all hover:shadow-lg">
               <User className="h-4 w-4" />
               <span className="hidden max-w-[120px] truncate lg:inline">
-                {userEmail?.split('@')[0] ?? 'Kullanıcı'}
+                Misafir
               </span>
             </button>
             <div className="invisible absolute right-0 top-full mt-1 w-48 rounded-xl border border-slate-200 bg-white p-1.5 opacity-0 shadow-xl transition-all group-hover:visible group-hover:opacity-100 dark:border-slate-800 dark:bg-slate-900">
               <div className="truncate px-3 py-2 text-xs text-slate-500 dark:text-slate-400">
-                {userEmail}
+                Misafir hesap
               </div>
               <button
                 onClick={onOpenSettings}
