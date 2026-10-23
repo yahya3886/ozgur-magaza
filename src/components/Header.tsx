@@ -1,4 +1,4 @@
-import { Search, Sun, Moon, RefreshCw, Github, Package, Database, LogOut, User, Trash2 } from 'lucide-react';
+import { Search, Sun, Moon, RefreshCw, Github, Package, Database, LogOut, User, Trash2, Settings } from 'lucide-react';
 import type { ThemeMode, SortOption } from '@/types';
 
 interface HeaderProps {
@@ -16,6 +16,7 @@ interface HeaderProps {
   userEmail: string | null;
   onSignOut: () => void;
   onDeleteAccount: () => void;
+  onOpenSettings: () => void;
 }
 
 const SORT_LABELS: Record<SortOption, string> = {
@@ -41,6 +42,7 @@ export function Header({
   userEmail,
   onSignOut,
   onDeleteAccount,
+  onOpenSettings,
 }: HeaderProps) {
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl dark:border-slate-800/80 dark:bg-slate-950/90">
@@ -134,16 +136,16 @@ export function Header({
                 {userEmail}
               </div>
               <button
-                onClick={onSignOut}
-                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30"
+                onClick={onOpenSettings}
+                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
               >
-                <LogOut className="h-4 w-4" /> Çıkış Yap
+                <Settings className="h-4 w-4" /> Ayarlar
               </button>
               <button
-                onClick={onDeleteAccount}
-                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30"
+                onClick={onSignOut}
+                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
               >
-                <Trash2 className="h-4 w-4" /> Hesabı Sil
+                <LogOut className="h-4 w-4" /> Çıkış Yap
               </button>
             </div>
           </div>

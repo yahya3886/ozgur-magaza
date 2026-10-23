@@ -12,10 +12,11 @@ import { AppCard } from '@/components/AppCard';
 import { AppDetail } from '@/components/AppDetail';
 import { AuthScreen } from '@/components/AuthScreen';
 import { RepoManager } from '@/components/RepoManager';
+import { SettingsScreen } from '@/components/SettingsScreen';
 
 export default function App() {
   const { theme, toggleTheme } = useTheme();
-  const { user, loading: authLoading, signIn, signUp, signInAnonymously, resetPassword, updatePassword, deleteAccount, signOut } = useAuth();
+  const { user, loading: authLoading, passwordRecovery, signIn, signUp, signInAnonymously, resetPassword, updatePassword, deleteAccount, signOut } = useAuth();
   const { repos, loading: reposLoading, addRepo, removeRepo, toggleRepo } = useRepos(user?.id ?? null);
   const { apps, loading, error, refetch } = useApps(repos);
 
@@ -25,6 +26,7 @@ export default function App() {
   const [selectedApp, setSelectedApp] = useState<AppItem | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [repoManagerOpen, setRepoManagerOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = { all: apps.length };
@@ -100,8 +102,8 @@ export default function App() {
     );
   }
 
-  if (!user) {
-    return <AuthScreen onSignIn={signIn} onSignUp={signUp} onSignInAnonymously={signInAnonymously} onResetPassword={resetPassword} onUpdatePassword={updatePassword} onDeleteAccount={deleteAccount} />;
+  if (!user || passwordRecovery) {
+    return <AuthScreen onSignIn={signIn} onSignUp={signUp} onSignInAnonymously={signInAnonymously} onResetPassword={resetPassword} onUpdatePassword={updatePassword} passwordRecovery={passwordRecovery} />;
   }
 
   return (
@@ -121,6 +123,7 @@ export default function App() {
         userEmail={user.email ?? null}
         onSignOut={signOut}
         onDeleteAccount={deleteAccount}
+        onOpenSettings={() => setSettingsOpen(true)}
       />
 
       <Sidebar
@@ -220,6 +223,16 @@ export default function App() {
       </main>
 
       <AppDetail app={selectedApp} onClose={() => setSelectedApp(null)} />
+
+      {settingsOpen && (
+        <SettingsScreen
+          userEmail={user.email ?? null}
+          onUpdatePassword={updatePassword}
+          onDeleteAccount={deleteAccount}
+          onSignOut={signOut}
+          onClose={() => setSettingsOpen(false)}
+        />
+      )}
 
       {repoManagerOpen && (
         <RepoManager

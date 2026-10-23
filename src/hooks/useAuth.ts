@@ -8,6 +8,7 @@ interface AuthState {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  passwordRecovery: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null; needsConfirmation?: boolean }>;
   signUp: (email: string, password: string) => Promise<{ error: string | null; confirmationSent?: boolean }>;
   signInAnonymously: () => Promise<{ error: string | null }>;
@@ -21,6 +22,7 @@ export function useAuth(): AuthState {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [passwordRecovery, setPasswordRecovery] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -29,7 +31,15 @@ export function useAuth(): AuthState {
       setLoading(false);
     });
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, sess) => {
+    const { data: listener } = supabase.auth.onAuthStateChange((event, sess) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setPasswordRecovery(true);
+        setUser(null);
+        setSession(sess);
+        setLoading(false);
+        return;
+      }
+      setPasswordRecovery(false);
       setSession(sess);
       setUser(sess?.user ?? null);
       setLoading(false);
@@ -80,7 +90,9 @@ export function useAuth(): AuthState {
 
   const updatePassword = useCallback(async (newPassword: string) => {
     const { error } = await supabase.auth.updateUser({ password: newPassword });
-    return { error: error?.message ?? null };
+    if (error) return { error: error.message };
+    setPasswordRecovery(false);
+    return { error: null };
   }, []);
 
   const deleteAccount = useCallback(async () => {
@@ -109,5 +121,5 @@ export function useAuth(): AuthState {
     await supabase.auth.signOut();
   }, []);
 
-  return { user, session, loading, signIn, signUp, signInAnonymously, resetPassword, updatePassword, deleteAccount, signOut };
+  return { user, session, loading, passwordRecovery, signIn, signUp, signInAnonymously, resetPassword, updatePassword, deleteAccount, signOut };
 }
