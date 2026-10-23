@@ -52,7 +52,7 @@ export function useAuth(): AuthState {
       email,
       password,
       options: {
-        emailRedirectTo: window.location.origin,
+        emailRedirectTo: import.meta.env.VITE_SUPABASE_URL,
       },
     });
     if (error) return { error: error.message };
@@ -70,7 +70,7 @@ export function useAuth(): AuthState {
 
   const resetPassword = useCallback(async (email: string) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin,
+      redirectTo: import.meta.env.VITE_SUPABASE_URL,
     });
     return { error: error?.message ?? null };
   }, []);
