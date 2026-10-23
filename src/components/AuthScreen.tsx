@@ -1,24 +1,38 @@
-import { useState } from 'react';
-import { Package, Mail, Lock, LogIn, UserPlus, AlertCircle, Loader2, KeyRound, ArrowLeft, CheckCircle2, UserRound, Eye, EyeOff } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Package, Mail, Lock, LogIn, UserPlus, AlertCircle, Loader2, KeyRound, ArrowLeft, CheckCircle2, UserRound, Eye, EyeOff, Trash2, ShieldAlert } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 interface AuthScreenProps {
   onSignIn: (email: string, password: string) => Promise<{ error: string | null; needsConfirmation?: boolean }>;
   onSignUp: (email: string, password: string) => Promise<{ error: string | null; confirmationSent?: boolean }>;
   onSignInAnonymously: () => Promise<{ error: string | null }>;
   onResetPassword: (email: string) => Promise<{ error: string | null }>;
+  onUpdatePassword: (newPassword: string) => Promise<{ error: string | null }>;
+  onDeleteAccount: () => Promise<{ error: string | null }>;
 }
 
-type View = 'auth' | 'forgot-password' | 'confirmation-sent';
+type View = 'auth' | 'forgot-password' | 'confirmation-sent' | 'reset-password';
 
-export function AuthScreen({ onSignIn, onSignUp, onSignInAnonymously, onResetPassword }: AuthScreenProps) {
+export function AuthScreen({ onSignIn, onSignUp, onSignInAnonymously, onResetPassword, onUpdatePassword, onDeleteAccount }: AuthScreenProps) {
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [view, setView] = useState<View>('auth');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  // Detect password recovery from URL (Supabase sets type=recovery in the hash)
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash.includes('type=recovery')) {
+      setView('reset-password');
+    }
+  }, []);
 
   const resetState = () => {
     setError(null);
@@ -77,10 +91,138 @@ export function AuthScreen({ onSignIn, onSignUp, onSignInAnonymously, onResetPas
     if (result.error) setError(result.error);
   };
 
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword.length < 6) {
+      setError('Yeni şifre en az 6 karakter olmalı.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setError('Şifreler eşleşmiyor.');
+      return;
+    }
+    setSubmitting(true);
+    resetState();
+    const result = await onUpdatePassword(newPassword);
+    setSubmitting(false);
+    if (result.error) {
+      setError(result.error);
+    } else {
+      setInfo('Şifreniz başarıyla değiştirildi.');
+      // Clear URL hash
+      window.history.replaceState(null, '', window.location.pathname);
+      setTimeout(() => {
+        supabase.auth.signOut();
+        setView('auth');
+        setNewPassword('');
+        setConfirmPassword('');
+        setInfo(null);
+      }, 2000);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    setSubmitting(true);
+    resetState();
+    const result = await onDeleteAccount();
+    setSubmitting(false);
+    if (result.error) {
+      setError(result.error);
+      setShowDeleteConfirm(false);
+    }
+  };
+
   const switchMode = (newMode: 'signin' | 'signup') => {
     setMode(newMode);
     resetState();
   };
+
+  // ── Reset password view (after clicking email link) ──
+  if (view === 'reset-password') {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-teal-50/30 to-slate-100 px-4 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+        <div className="w-full max-w-md">
+          <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.08)] dark:border-slate-800 dark:bg-slate-900">
+            <div className="mb-6">
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white">Yeni Şifre Belirle</h2>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                Hesabınız için yeni bir şifre belirleyin.
+              </p>
+            </div>
+
+            {error && (
+              <div className="mb-4 flex items-center gap-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-400">
+                <AlertCircle className="h-4 w-4 shrink-0" />
+                {error}
+              </div>
+            )}
+
+            {info && (
+              <div className="mb-4 flex items-center gap-2 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700 dark:border-green-900/50 dark:bg-green-950/30 dark:text-green-400">
+                <CheckCircle2 className="h-4 w-4 shrink-0" />
+                {info}
+              </div>
+            )}
+
+            <form onSubmit={handleResetPassword} className="space-y-4">
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Yeni Şifre
+                </label>
+                <div className="relative">
+                  <Lock className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="h-14 w-full rounded-2xl border border-slate-200 bg-slate-50 pl-12 pr-12 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all focus:border-teal-500 focus:bg-white focus:ring-2 focus:ring-teal-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500 dark:focus:border-teal-400"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-700"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Yeni Şifre (Tekrar)
+                </label>
+                <div className="relative">
+                  <Lock className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="h-14 w-full rounded-2xl border border-slate-200 bg-slate-50 pl-12 pr-4 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all focus:border-teal-500 focus:bg-white focus:ring-2 focus:ring-teal-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500 dark:focus:border-teal-400"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={submitting}
+                className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-teal-600 text-sm font-semibold text-white shadow-[0_1px_4px_rgba(0,0,0,0.12),0_4px_12px_rgba(13,148,136,0.3)] transition-all hover:bg-teal-700 hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_6px_16px_rgba(13,148,136,0.4)] active:scale-[0.98] disabled:opacity-60"
+              >
+                {submitting ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <>
+                    <KeyRound className="h-5 w-5" /> Şifreyi Değiştir
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // ── Confirmation sent view ──
   if (view === 'confirmation-sent') {
@@ -315,6 +457,33 @@ export function AuthScreen({ onSignIn, onSignUp, onSignInAnonymously, onResetPas
             <UserRound className="h-5 w-5" />
             Misafir olarak devam et
           </button>
+
+          {showDeleteConfirm && (
+            <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 p-4 dark:border-red-900/50 dark:bg-red-950/30">
+              <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-red-700 dark:text-red-400">
+                <ShieldAlert className="h-5 w-5" />
+                Hesabınızı silmek üzeresiniz
+              </div>
+              <p className="mb-3 text-xs text-red-600 dark:text-red-400">
+                Bu işlem geri alınamaz. Tüm verileriniz kalıcı olarak silinecek.
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={submitting}
+                  className="flex-1 rounded-full bg-red-600 py-2.5 text-sm font-semibold text-white transition-all hover:bg-red-700 active:scale-[0.98] disabled:opacity-60"
+                >
+                  {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Evet, sil'}
+                </button>
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="flex-1 rounded-full border border-slate-200 py-2.5 text-sm font-semibold text-slate-600 transition-all hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                >
+                  Vazgeç
+                </button>
+              </div>
+            </div>
+          )}
 
           <p className="mt-5 text-center text-xs text-slate-400 dark:text-slate-500">
             {mode === 'signin'

@@ -7,7 +7,7 @@ const corsHeaders = {
 const FDROID_INDEX_URL = "https://f-droid.org/repo/index-v1.json";
 const FDROID_REPO_BASE = "https://f-droid.org/repo";
 const FDROID_ICON_BASE = "https://f-droid.org/repo/icons-640";
-const MAX_APPS = 200;
+const MAX_APPS = 4000;
 
 interface FDroidApp {
   packageName: string;

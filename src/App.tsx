@@ -15,7 +15,7 @@ import { RepoManager } from '@/components/RepoManager';
 
 export default function App() {
   const { theme, toggleTheme } = useTheme();
-  const { user, loading: authLoading, signIn, signUp, signInAnonymously, resetPassword, signOut } = useAuth();
+  const { user, loading: authLoading, signIn, signUp, signInAnonymously, resetPassword, updatePassword, deleteAccount, signOut } = useAuth();
   const { repos, loading: reposLoading, addRepo, removeRepo, toggleRepo } = useRepos(user?.id ?? null);
   const { apps, loading, error, refetch } = useApps(repos);
 
@@ -101,7 +101,7 @@ export default function App() {
   }
 
   if (!user) {
-    return <AuthScreen onSignIn={signIn} onSignUp={signUp} onSignInAnonymously={signInAnonymously} onResetPassword={resetPassword} />;
+    return <AuthScreen onSignIn={signIn} onSignUp={signUp} onSignInAnonymously={signInAnonymously} onResetPassword={resetPassword} onUpdatePassword={updatePassword} onDeleteAccount={deleteAccount} />;
   }
 
   return (
@@ -120,6 +120,7 @@ export default function App() {
         onOpenRepoManager={() => setRepoManagerOpen(true)}
         userEmail={user.email ?? null}
         onSignOut={signOut}
+        onDeleteAccount={deleteAccount}
       />
 
       <Sidebar

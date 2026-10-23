@@ -24,7 +24,7 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
 const DEFAULT_FDROID_REPO = {
   name: 'F-Droid (Varsayılan)',
-  url: `${SUPABASE_URL}/functions/v1/fdroid-proxy?limit=200`,
+  url: `${SUPABASE_URL}/functions/v1/fdroid-proxy`,
 };
 
 export function useRepos(userId: string | null): UseReposResult {

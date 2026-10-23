@@ -1,4 +1,4 @@
-import { Search, Sun, Moon, RefreshCw, Github, Package, Database, LogOut, User } from 'lucide-react';
+import { Search, Sun, Moon, RefreshCw, Github, Package, Database, LogOut, User, Trash2 } from 'lucide-react';
 import type { ThemeMode, SortOption } from '@/types';
 
 interface HeaderProps {
@@ -15,6 +15,7 @@ interface HeaderProps {
   onOpenRepoManager: () => void;
   userEmail: string | null;
   onSignOut: () => void;
+  onDeleteAccount: () => void;
 }
 
 const SORT_LABELS: Record<SortOption, string> = {
@@ -39,6 +40,7 @@ export function Header({
   onOpenRepoManager,
   userEmail,
   onSignOut,
+  onDeleteAccount,
 }: HeaderProps) {
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl dark:border-slate-800/80 dark:bg-slate-950/90">
@@ -136,6 +138,12 @@ export function Header({
                 className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30"
               >
                 <LogOut className="h-4 w-4" /> Çıkış Yap
+              </button>
+              <button
+                onClick={onDeleteAccount}
+                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30"
+              >
+                <Trash2 className="h-4 w-4" /> Hesabı Sil
               </button>
             </div>
           </div>

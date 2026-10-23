@@ -3,7 +3,11 @@
   "functions": {
     "fdroid-proxy": {
       "hasChanged": false,
-      "hash": "e5ad9d0eb9d542f9f8afa2914b6bc81103419b1e4c36be000b4013f995eafc21"
+      "hash": "96d3a8922d0502b40ce9b68fed6183db61918ab2dd094a422af675d24eb95ce6"
+    },
+    "delete-account": {
+      "hasChanged": false,
+      "hash": "8000f510657ec1e477e0de39c7ee2161ea1977b9c3c3199ea1571a85fcda89e7"
     }
   }
 }

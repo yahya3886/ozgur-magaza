@@ -12,6 +12,8 @@ interface AuthState {
   signUp: (email: string, password: string) => Promise<{ error: string | null; confirmationSent?: boolean }>;
   signInAnonymously: () => Promise<{ error: string | null }>;
   resetPassword: (email: string) => Promise<{ error: string | null }>;
+  updatePassword: (newPassword: string) => Promise<{ error: string | null }>;
+  deleteAccount: () => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -58,7 +60,6 @@ export function useAuth(): AuthState {
       },
     });
     if (error) return { error: error.message };
-    // If session is null and no error, email confirmation is required
     if (data.user && !data.session) {
       return { error: null, confirmationSent: true };
     }
@@ -77,9 +78,36 @@ export function useAuth(): AuthState {
     return { error: error?.message ?? null };
   }, []);
 
+  const updatePassword = useCallback(async (newPassword: string) => {
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    return { error: error?.message ?? null };
+  }, []);
+
+  const deleteAccount = useCallback(async () => {
+    const { data: { session: currentSession } } = await supabase.auth.getSession();
+    if (!currentSession) return { error: 'Oturum bulunamadı.' };
+
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const response = await fetch(`${supabaseUrl}/functions/v1/delete-account`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${currentSession.access_token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({ error: 'Hesap silinemedi.' }));
+      return { error: data.error ?? 'Hesap silinemedi.' };
+    }
+
+    await supabase.auth.signOut();
+    return { error: null };
+  }, []);
+
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
   }, []);
 
-  return { user, session, loading, signIn, signUp, signInAnonymously, resetPassword, signOut };
+  return { user, session, loading, signIn, signUp, signInAnonymously, resetPassword, updatePassword, deleteAccount, signOut };
 }
