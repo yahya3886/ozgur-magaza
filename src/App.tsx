@@ -15,7 +15,7 @@ import { RepoManager } from '@/components/RepoManager';
 
 export default function App() {
   const { theme, toggleTheme } = useTheme();
-  const { user, loading: authLoading, signIn, signUp, signInWithGoogle, signOut } = useAuth();
+  const { user, loading: authLoading, signIn, signUp, signInAnonymously, resetPassword, signOut } = useAuth();
   const { repos, loading: reposLoading, addRepo, removeRepo, toggleRepo } = useRepos(user?.id ?? null);
   const { apps, loading, error, refetch } = useApps(repos);
 
@@ -101,7 +101,7 @@ export default function App() {
   }
 
   if (!user) {
-    return <AuthScreen onSignIn={signIn} onSignUp={signUp} onGoogleSignIn={signInWithGoogle} />;
+    return <AuthScreen onSignIn={signIn} onSignUp={signUp} onSignInAnonymously={signInAnonymously} onResetPassword={resetPassword} />;
   }
 
   return (

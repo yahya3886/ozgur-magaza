@@ -6,9 +6,10 @@ interface AuthState {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: string | null }>;
-  signUp: (email: string, password: string) => Promise<{ error: string | null }>;
-  signInWithGoogle: () => Promise<{ error: string | null }>;
+  signIn: (email: string, password: string) => Promise<{ error: string | null; needsConfirmation?: boolean }>;
+  signUp: (email: string, password: string) => Promise<{ error: string | null; confirmationSent?: boolean }>;
+  signInAnonymously: () => Promise<{ error: string | null }>;
+  resetPassword: (email: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -37,18 +38,39 @@ export function useAuth(): AuthState {
 
   const signIn = useCallback(async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error: error?.message ?? null };
+    if (error) {
+      if (error.message.toLowerCase().includes('email not confirmed')) {
+        return { error: 'E-posta adresinizi doğrulamanız gerekli. Lütfen e-postanızı kontrol edin.', needsConfirmation: true };
+      }
+      return { error: error.message };
+    }
+    return { error: null };
   }, []);
 
   const signUp = useCallback(async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: window.location.origin,
+      },
+    });
+    if (error) return { error: error.message };
+    // If session is null and no error, email confirmation is required
+    if (data.user && !data.session) {
+      return { error: null, confirmationSent: true };
+    }
+    return { error: null, confirmationSent: false };
+  }, []);
+
+  const signInAnonymously = useCallback(async () => {
+    const { error } = await supabase.auth.signInAnonymously();
     return { error: error?.message ?? null };
   }, []);
 
-  const signInWithGoogle = useCallback(async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: window.location.origin },
+  const resetPassword = useCallback(async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin,
     });
     return { error: error?.message ?? null };
   }, []);
@@ -57,5 +79,5 @@ export function useAuth(): AuthState {
     await supabase.auth.signOut();
   }, []);
 
-  return { user, session, loading, signIn, signUp, signInWithGoogle, signOut };
+  return { user, session, loading, signIn, signUp, signInAnonymously, resetPassword, signOut };
 }
