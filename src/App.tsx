@@ -13,6 +13,7 @@ import { AppDetail } from '@/components/AppDetail';
 import { AuthScreen } from '@/components/AuthScreen';
 import { RepoManager } from '@/components/RepoManager';
 import { SettingsScreen } from '@/components/SettingsScreen';
+import { ChatScreen } from '@/components/ChatScreen';
 
 export default function App() {
   const { theme, toggleTheme } = useTheme();
@@ -27,6 +28,7 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [repoManagerOpen, setRepoManagerOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
 
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = { all: apps.length };
@@ -124,6 +126,7 @@ export default function App() {
         onSignOut={signOut}
         onDeleteAccount={deleteAccount}
         onOpenSettings={() => setSettingsOpen(true)}
+        onOpenChat={() => setChatOpen(true)}
       />
 
       <Sidebar
@@ -223,6 +226,13 @@ export default function App() {
       </main>
 
       <AppDetail app={selectedApp} onClose={() => setSelectedApp(null)} />
+
+      {chatOpen && (
+        <ChatScreen
+          user={user}
+          onClose={() => setChatOpen(false)}
+        />
+      )}
 
       {settingsOpen && (
         <SettingsScreen
